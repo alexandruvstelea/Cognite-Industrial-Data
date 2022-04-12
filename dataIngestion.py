@@ -5,6 +5,9 @@ import psycopg2
 import schedule
 import json
 
+#TIME VARIABLE FOR DB REFRESH
+refresh_time = 8 #days
+
 #DATABASE INFO AND CONNECTION
 dbInf = open('databaseInfo.json')
 db_info = json.load(dbInf)
@@ -74,7 +77,7 @@ def get_assets_in_db(type):
 
 #FUNCTIE DE EXTRAGERE IN FORMAT DE LISTA A VALORILOR DIN COGNITEDB IMPREUNA CU ORA, DATA SI ASSET ID-ul
 def get_datapoints_list_format(datapoints_id,asset_id):
-    datapoints = c.datapoints.retrieve(id=datapoints_id,start=datetime.now()-timedelta(days=8),end=datetime.now())
+    datapoints = c.datapoints.retrieve(id=datapoints_id,start=datetime.now()-timedelta(days=refresh_time),end=datetime.now())
     data_list = []
     i=0
     for data in datapoints:
@@ -98,11 +101,7 @@ def transfer_datapoints_to_db(assets_data):
     try:
         connection = psycopg2.connect(host=hostname,dbname=database,user=username,password=pwd,port=port_id)
         cursor = connection.cursor()
-        delete_all_data = 'DELETE FROM datapoints_info'
-        reset_auto_increment = 'ALTER SEQUENCE datapoints_info_id_seq RESTART WITH 1'
         insert_script = 'INSERT INTO datapoints_info (timestamp,value,asset_id) VALUES (%s,%s,%s)'
-        cursor.execute(delete_all_data)
-        cursor.execute(reset_auto_increment)
         for data in assets_data:
             for individual_data in data:
                 insert_data = (individual_data[0],individual_data[1],individual_data[2])
@@ -133,7 +132,7 @@ def add_new_datapoints_to_db():
 
 
 #SCHEDULER CARE APELEAZA FUNCTIA PRINCIPALA LA FIECARE 30 DE SECUNDE
-schedule.every(30).seconds.do(add_new_datapoints_to_db)
+schedule.every(refresh_time).days.do(add_new_datapoints_to_db)
 while True:
     schedule.run_pending()
     time.sleep(1)
