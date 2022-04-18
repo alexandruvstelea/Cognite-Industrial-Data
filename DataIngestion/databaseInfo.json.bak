@@ -1,0 +1,7 @@
+{
+    "hostname": "localhost",
+    "databaseName": "CogniteIndustrialData",
+    "username": "postgres",
+    "password": "!Ironpassmarkp123*",
+    "portID": "5432"
+}

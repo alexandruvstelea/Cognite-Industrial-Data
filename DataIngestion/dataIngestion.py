@@ -5,11 +5,11 @@ import psycopg2
 import schedule
 import json
 
-#TIME VARIABLE FOR DB REFRESH
+#VARIABILA DE TIMP PENTRU REFRESHul DB
 refresh_time = 8 #days
 
-#DATABASE INFO AND CONNECTION
-dbInf = open('databaseInfo.json')
+#DATABASE INFO
+dbInf = open('DataIngestion/databaseInfo.json')
 db_info = json.load(dbInf)
 hostname = db_info['hostname']
 database = db_info['databaseName']
@@ -19,7 +19,7 @@ port_id  = db_info['portID']
 dbInf.close()
 
 #AUTENTIFICARE COGNITE
-cognInf = open('cogniteClientInfo.json')
+cognInf = open('DataIngestion/cogniteClientInfo.json')
 client_info = json.load(cognInf)
 api_key = client_info['APIKey']
 client_name = client_info['clientName']
@@ -98,6 +98,7 @@ def get_datapoints_list_format(datapoints_id,asset_id):
 def transfer_datapoints_to_db(assets_data):
     cursor = None
     connection = None
+    counter = 0
     try:
         connection = psycopg2.connect(host=hostname,dbname=database,user=username,password=pwd,port=port_id)
         cursor = connection.cursor()
@@ -105,6 +106,7 @@ def transfer_datapoints_to_db(assets_data):
         for data in assets_data:
             for individual_data in data:
                 insert_data = (individual_data[0],individual_data[1],individual_data[2])
+                counter += 1
                 cursor.execute(insert_script,insert_data)
         connection.commit()
     except Exception as error:
@@ -114,12 +116,12 @@ def transfer_datapoints_to_db(assets_data):
             cursor.close()
         if connection is not None:
             connection.close()
-        print("ADDED NEW DATA TO DB")
+        print(f"ADDED NEW DATA TO DB\nNumber of entries: {counter}")
 
 #FUNCTIE PRINCIPALA - APELEAZA FUNCTIILE NECESARE PENTRU UPDATE-ul DB-ului
 def add_new_datapoints_to_db():
     print("\nStarted script")
-    astInf = open('assets.json')
+    astInf = open('DataIngestion/assets.json')
     assets_list = json.load(astInf)
     update_assets_info(assets_list)
     active_assets_id = get_assets_in_db("only_used_assets")
@@ -130,7 +132,9 @@ def add_new_datapoints_to_db():
     transfer_datapoints_to_db(assets_data)
     print("FINISHED SCRIPT")
 
+#APELARE INITIALA
 
+add_new_datapoints_to_db()
 #SCHEDULER CARE APELEAZA FUNCTIA PRINCIPALA LA FIECARE 30 DE SECUNDE
 schedule.every(refresh_time).days.do(add_new_datapoints_to_db)
 while True:
