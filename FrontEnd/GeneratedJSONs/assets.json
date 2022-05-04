@@ -1,0 +1,27 @@
+[
+  {
+    "name": "VRD_PH_1STSTG_OIL_FILTER",
+    "id": 591296422005001,
+    "used": true
+  },
+  {
+    "name": "VRD_PH_1STSTGCOMP_SUCTION",
+    "id": 8571696650722129,
+    "used": false
+  },
+  {
+    "name": "VRD_PH_1STSTGSUCTSCRUBBER_LIQ_OUT",
+    "id": 3209404850896877,
+    "used": true
+  },
+  {
+    "name": "VRD_PH_1STSTGSUCTSCRUBBER_GAS_OUT",
+    "id": 4079323732151149,
+    "used": false
+  },
+  {
+    "name": "VRD_1ST_STAGE_SUCTION_DISCHARGE_COOLER_SKID",
+    "id": 2513266419866445,
+    "used": false
+  }
+]

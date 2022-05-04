@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from queue import Empty
 from statistics import mean
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import json
 
@@ -34,9 +34,9 @@ def get_assets():
     results = db.session.query(asset).all()
     output = []
     for asst in results:
-        asset_name = {'name': asst.asset_name}
-        output.append(asset_name)
-    return render_template('assets.html', posts=output)
+        asset_info = {'name': asst.asset_name,'id' : asst.asset_id, 'used': asst.is_used}
+        output.append(asset_info)
+    return jsonify(output)
 
 # FUNCTIE DE CALCUL A MEDIEI VALORILOR UNUI ASSET IN FUNCTIE DE ID
 @app.route('/average/<asset_id>/<int:interval>')
@@ -45,24 +45,26 @@ def get_values_average(asset_id,interval):
     results = db.session.query(data).filter_by(asset_id = asset_id).all()
     values = []
     for asst in results:
-        if (datetime.strptime(str(asst.timestamp), '%Y-%d-%m %H:%M:%S') > start):
+        if (datetime.strptime(str(asst.timestamp), '%Y-%m-%d %H:%M:%S') > start):
             values.append(asst.value)
     if not values:
-        return f'No data from {start}'
-    return f"Average: {mean(values)} starting from {start}"
+        return {'average':'No data'}
+    else:
+        return {'average':mean(values)}
 
-# FUNCTIE DE CALCUL A MAXIMULUI VALORILOR UNUI ASSET IN FUCNTIE DE ID
+# FUNCTIE DE CALCUL A MAXIMULUI VALORILOR UNUI ASSET IN FUNCTIE DE ID
 @app.route('/maximum/<asset_id>/<int:interval>')
 def get_values_maximum(asset_id,interval):
     start=datetime.now()-timedelta(days=int(interval))
-    results = db.session.query(data).filter_by(asset_id = asset_id).all()
+    results = db.session.query(data).filter_by(asset_id = asset_id).max()
     values = []
     for asst in results:
-        if (datetime.strptime(str(asst.timestamp), '%Y-%d-%m %H:%M:%S') > start):
+        if (datetime.strptime(str(asst.timestamp), '%Y-%m-%d %H:%M:%S') > start):
             values.append(asst.value)
     if not values:
-        return f'No data from {start}'
-    return f"Maximum: {max(values)} starting from {start}"
+        return {'maximum':'No data'}
+    else:
+        return {'maximum':max(values)}
 
 #FUNCTIE CARE RETURNEAZA DATAPOINTurile UNUI ASSET IN FUNCTIE DE ID
 @app.route('/datapoints/<asset_id>')
@@ -70,9 +72,8 @@ def get_values(asset_id):
     results = db.session.query(data).filter_by(asset_id=asset_id).all()
     values = []
     for asst in results:
-        values.append(f"{asst.value},{asst.timestamp}")
-    return {'datapoints': values}
-
+        values.append({'value':asst.value,'timestamp':str(asst.timestamp)})
+    return jsonify(values)
 
 if __name__ == '__main__':
     app.run(debug=True)

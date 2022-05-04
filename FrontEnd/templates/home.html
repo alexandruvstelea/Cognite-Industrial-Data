@@ -13,18 +13,12 @@
     <div class="navigation_bar">
         <div class="container">
             <a class="logo" href="/home">Cognite Industrial<span> Data</span></a>
-
-            <!-- <img id="butonMobilAfisareMeniu" class="meniuMobil" src="Imagini/liniiMeniuHamburger.svg" alt="Deschide Meniu"> -->
-
             <nav>
-                <!-- <img id="butonMobilIesireMeniu" class="meniuMobilIesire" src="Imagini/X.svg" alt="Inchide Meniu"> -->
-
                 <ul class="main_navigation_bar">
                     <li class="current_page">
                         <a href="/home">Home</a>
                     </li>
                     <li><a href="/assets">Assets</a></li>
-                    <li><a href="#">Check data</a></li>
                 </ul>
 
                 <ul class="secondary_navigation_bar">
@@ -34,6 +28,39 @@
             </nav>
         </div>
     </div>
+
+    <section class="hero">
+        <div class="container">
+            <h1 class="sub_head">Welcome to <span style="color: rgb(255, 52, 1);">Cognite Industrial</span> Data Tracker</h1>
+            <h2 class="description">This project aims to collect and process data provided by the Open Industrial Project for learning purposes.It uses the API provided by the open industrial platform to extract the data and stores it in a relational database. The database is
+                refreshed every 8 days so that it can always have the latest data provided. It is then provided to the front end of the app for viewing using a REST API.
+            </h2>
+            <a href="/assets" class="explore_assets_button">Explore available assets</a>
+        </div>
+    </section>
+
+    <section class="section_creators">
+        <div class="creators_container">
+            <ul>
+                <li>
+                    <img src="{{ url_for('static',filename='images/alex.svg') }}" alt="Alex">
+                    <blockquote>Creator 1</blockquote>
+                    <cite>Alex</cite>
+                </li>
+                <li>
+                    <img src="" alt="Andrei">
+                    <blockquote>Creator 2</blockquote>
+                    <cite>Andrei</cite>
+                </li>
+                <li>
+                    <img src="" alt="Vladimir">
+                    <blockquote>Creator 3</blockquote>
+                    <cite>Vladimir</cite>
+                </li>
+            </ul>
+        </div>
+    </section>
+
 </body>
 
 </html>
