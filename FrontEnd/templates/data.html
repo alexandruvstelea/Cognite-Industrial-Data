@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognite Industrial Data</title>
+    <link rel="stylesheet" href="/public/styles/data.css">
+</head>
+
+<body onload="getGraphData()">
+    <div class="navigation_bar">
+        <div class="container">
+            <a class="logo" href="/FrontEnd/templates/home.html">Cognite Industrial<span> Data</span></a>
+            <nav>
+                <ul class="main_navigation_bar">
+                    <li class="current_page">
+                        <a href="/FrontEnd/templates/home.html">Home</a>
+                    </li>
+                    <li><a href="/FrontEnd/templates/assets.html">Assets</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <section class="info">
+        <div>
+            <h1 style="text-align: center;"></h1>
+        </div>
+        <script>
+            var queryString = decodeURIComponent(window.location.search);
+            queryString = queryString.substring(1);
+            var queries = queryString.split("&");
+            for (var i = 0; i < queries.length; i++) {
+                document.write(queries[i] + "<br><br>");
+            }
+        </script>
+        <form>
+            <input type="range" id="slider" name="rangeInput" min="0" max="100" onchange="updateDays(this.value);">
+            <output type="text" id="days" value=""></output>
+            <script>
+                function updateDays(val) {
+                    document.getElementById('days').value = val + ' days';
+                }
+            </script>
+        </form>
+        <form class="choice-group">
+            <input type="radio" name="choice" value="average" onchange="getData()">Average
+            <input type="radio" name="choice" value="maximum" onchange="getData()">Maximum
+            <input type="radio" name="choice" value="minimum" onchange="getData()">Minimum
+            <script>
+                function getData() {
+                    let queryString = decodeURIComponent(window.location.search);
+                    queryString = queryString.substring(1);
+                    let id = queryString.split("&");
+                    let slider_range = document.getElementById('slider').value
+                    let radio_choice = document.querySelector('input[name="choice"]:checked').value
+                    fetch('http://127.0.0.1:5000/datapoints?' + new URLSearchParams({
+                            id: id[0],
+                            choice: radio_choice,
+                            range: slider_range
+                        }))
+                        .then(function(response) {
+                            return response.json()
+                        })
+                        .then(function(complete_response) {
+                            console.log(complete_response)
+                            document.getElementById('value').innerHTML = complete_response.value
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        })
+                }
+            </script>
+        </form>
+        <div id="value"></div>
+
+        <script>
+            function getGraphData() {
+                let id = queryString.split("&");
+                fetch('http://127.0.0.1:5000/datapoints?' + new URLSearchParams({
+                        id: id[0],
+                        choice: "all",
+                        range: 999
+                    }))
+                    .then(function(response) {
+                        return response.json()
+                    })
+                    .then(function(complete_response) {
+                        console.log(complete_response)
+                        document.getElementById('graph').innerHTML = complete_response.value
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+            }
+        </script>
+        <br><br>
+        <div id="graph">
+
+        </div>
+    </section>
+</body>
+
+</html>
