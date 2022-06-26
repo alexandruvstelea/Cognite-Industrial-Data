@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from operator import itemgetter
 from statistics import mean
 from turtle import title
 from flask import Flask, jsonify, request
@@ -6,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 from flask_cors import CORS
 import urllib.parse
+
 
 # DATABASE INFO
 dbInf = open('jsonFiles/databaseInfo.json')
@@ -36,22 +38,22 @@ def assets():
     return jsonify(output)
 
 
-def interpolation(res,rate):
-    values = []
+def interpolation(data,rate):
     valuesWithTime = []
-    interpolation_rate = len(res)/rate
+    interpolation_rate = len(data)/rate
+    if interpolation_rate < 1:
+        interpolation_rate = 1
     values_for_interpolation = []
     i = 0
-    for value in res:
+    for value in data:
         i +=1            
-        values.append(value.value)
         if i > interpolation_rate:
-                valuesWithTime.append([i,mean(values_for_interpolation)])
+                valuesWithTime.append([value[1],mean(values_for_interpolation)])
                 i = 0
                 values_for_interpolation = []
         else:
-                values_for_interpolation.append(value.value)
-    return valuesWithTime
+                values_for_interpolation.append(value[0])
+    return sorted(valuesWithTime,key=itemgetter(0))
 
 def date_separator(date_range):
     list  = date_range.split()
@@ -62,6 +64,7 @@ def date_separator(date_range):
 def getValues(asset_id,choice,start,end,interpolation_rate):
     results = db.session.query(data).filter_by(asset_id=asset_id).all()
     values = []
+    valuesWithTime = []
     try:
         if not isinstance(start,datetime) and not isinstance(end,datetime):
             raise ValueError("Not datetime")
@@ -71,6 +74,7 @@ def getValues(asset_id,choice,start,end,interpolation_rate):
         for value in results:
             if datetime.strptime(str(value.timestamp), '%Y-%m-%d %H:%M:%S') > start and datetime.strptime(str(value.timestamp), '%Y-%m-%d %H:%M:%S') < end:
                 values.append(value.value)
+                valuesWithTime.append([value.value,value.timestamp])
         if values:
             match choice:
                 case "average":
@@ -80,7 +84,7 @@ def getValues(asset_id,choice,start,end,interpolation_rate):
                 case "minimum":
                     return min(values)
                 case "all":
-                    return interpolation(results,interpolation_rate)
+                    return interpolation(valuesWithTime,interpolation_rate)
         else:
             return f"no data starting from {start} to {end}"
     else:

@@ -139,6 +139,10 @@
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
             transition: 0.3s;
             width: fit-content;
+            padding: 10px;
+            margin: 10px;
+            background-color: var(--primary_color);
+            font-weight: bolder;
         }
         
         .card:hover {
@@ -146,7 +150,7 @@
         }
         
         .container {
-            padding: 2px 16px;
+            padding: 2px 100px;
         }
         
         .container ul li {

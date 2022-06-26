@@ -41,8 +41,8 @@
                             <div class="card">
                                 <img src="/public/images/asset.svg" alt="Avatar" style="width:100%">
                                 <b>${values.name}</b>
-                                <p><a href=/FrontEnd/templates/data.html?${values.id}>${values.id}</a></p>
-                                <p>${values.used}</p>
+                                <p><a href=/FrontEnd/templates/data.html?${values.id}&${values.name}>${values.id}</a></p>
+                                <p>Tracking data: ${values.used}</p>
                             </div>
                             `
                             document.getElementById('cards').innerHTML = data

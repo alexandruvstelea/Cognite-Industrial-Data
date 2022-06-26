@@ -15,7 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
 </head>
 
-<body onload="getGraphData()">
+<body onload="initInterpolation()">
     <div class="navigation_bar">
         <div class="container">
             <a class="logo" href="/FrontEnd/templates/home.html">Cognite Industrial<span> Data</span></a>
@@ -32,42 +32,126 @@
 
     <section class="info">
         <div>
-            <h1 style="text-align: center;"></h1>
+            <h1 style="text-align: center;font-size: 35px;margin: 1px;" id="title"></h1>
+            <h2 style="text-align: center;margin-top: 10px;" id="assetID"></h2>
         </div>
         <script>
             var queryString = decodeURIComponent(window.location.search);
             queryString = queryString.substring(1);
             var queries = queryString.split("&");
-            for (var i = 0; i < queries.length; i++) {
-                document.write(queries[i] + "<br><br>");
+            document.getElementById("title").innerText = queries[1]
+            document.getElementById("assetID").innerText = 'Asset id: ' + queries[0]
+        </script>
+
+        <div style="height: 75%; width: 75%; margin-left: 12%;">
+            <canvas id="graph"></canvas>
+        </div>
+        <div style="text-align: center;">
+            <form>
+                Select the start and end date for collecting data
+                <input type="text" name="calendar" size="22" id="date_range" , onchange="getGraphData();getData()">
+                <script>
+                    $(function() {
+                        $('input[name="calendar"]').daterangepicker({
+                            opens: 'center'
+                        });
+                    });
+                </script>
+            </form>
+        </div>
+        <script>
+            let graph = document.getElementById("graph").getContext('2d')
+            let chart = new Chart(graph, {
+                type: "line",
+                data: {
+                    labels: 'dates',
+                    datasets: [{
+                        label: "Values",
+                        backgroundColor: "rgba(0,0,0,1)",
+                        borderColor: "rgb(255, 52, 1)",
+                        data: 'values'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    spanGaps: true,
+                    elements: {
+                        point: {
+                            radius: 0
+                        }
+                    }
+                }
+            })
+
+            async function updateChart(newData) {
+                console.log("UPDATING CHART")
+                console.log(newData)
+                let dates = []
+                let values = []
+                for (i = 0; i < newData.length; i++) {
+                    dates.push(newData[i][0])
+                    values.push(newData[i][1])
+                }
+                chart.data.datasets[0].data = values
+                chart.data.labels = dates
+                chart.update()
+
+            }
+        </script>
+        <script>
+            async function getGraphData() {
+                let id = queryString.split("&");
+                let calendar_range = document.getElementById('date_range').value
+                let interpolation_rate = document.getElementById('slider').value
+                const url = 'http://127.0.0.1:5000/datapoints?' + new URLSearchParams({
+                    id: id[0],
+                    choice: "all",
+                    range: calendar_range,
+                    int_rate: interpolation_rate
+                })
+                const response = await fetch(url)
+                    .then(function(response) {
+                        return response.json()
+                    })
+                    .then(function(complete_response) {
+                        let data = []
+                        for (i in complete_response.value) {
+                            let valueDate = []
+                            valueDate.push(complete_response.value[i][0])
+                            valueDate.push(complete_response.value[i][1])
+                            data.push(valueDate)
+                        }
+                        updateChart(data)
+                    })
             }
         </script>
         <form>
-            <input type="range" id="slider" name="rangeInput" min="0" max="1000" step="100" onchange="updateDays(this.value);getGraphData()">
-            <output type="text" id="days" value=""></output>
+            <div style="text-align: center;margin: 5px;">
+                <p>Interpolation rate: <output type="text" id="points" value=""></output></p>
+            </div>
+            <div style="text-align: center;">
+                <input type="range" id="slider" name="rangeInput" min="100" max="1000" step="100" onchange="updateInterpolation(this.value)">
+            </div>
+
             <script>
-                function updateDays(val) {
-                    document.getElementById('days').value = val + ' days';
+                function updateInterpolation(val) {
+                    document.getElementById('points').value = val + ' points';
+                    getGraphData()
+                }
+            </script>
+            <script>
+                function initInterpolation() {
+                    document.getElementById('points').value = '600 points';
                 }
             </script>
         </form>
-        <form>
-            <br>
-            <input type="text" name="calendar" size="22" id="date_range" onchange="getGraphData()">
-            <script>
-                $(function() {
-                    $('input[name="calendar"]').daterangepicker({
-                        opens: 'left'
-                    }, function(start, end, label) {
-
-                    });
-                });
-            </script>
-        </form>
         <form class="choice-group">
-            <input type="radio" name="choice" value="average" onchange="getData()">Average
-            <input type="radio" name="choice" value="maximum" onchange="getData()">Maximum
-            <input type="radio" name="choice" value="minimum" onchange="getData()">Minimum
+            <div style="text-align: center;">
+                Operation to perform on data:
+                <input type="radio" name="choice" value="average" onchange="getData()">Average
+                <input type="radio" name="choice" value="maximum" onchange="getData()">Maximum
+                <input type="radio" name="choice" value="minimum" onchange="getData()">Minimum
+            </div>
             <script>
                 function getData() {
                     let queryString = decodeURIComponent(window.location.search);
@@ -99,64 +183,9 @@
                 }
             </script>
         </form>
-        <div id="value"></div>
-
-        <br><br>
-        <div style="height: 75%; width: 75%;">
-            <canvas id="graph"></canvas>
-        </div>
-        <script>
-            function getGraphData() {
-                let id = queryString.split("&");
-                let calendar_range = document.getElementById('date_range').value
-                let interpolation_rate = document.getElementById('slider').value
-                fetch('http://127.0.0.1:5000/datapoints?' + new URLSearchParams({
-                        id: id[0],
-                        choice: "all",
-                        range: calendar_range,
-                        int_rate: interpolation_rate
-                    }))
-                    .then(function(response) {
-                        return response.json()
-                    })
-                    .then(function(complete_response) {
-                        let dates = []
-                        let values = []
-                        for (i in complete_response.value) {
-                            dates.push(complete_response.value[i][0])
-                            values.push(complete_response.value[i][1])
-                        }
-                        let graph = document.getElementById("graph").getContext('2d')
-                        let chart = new Chart(graph, {
-                            type: "line",
-                            data: {
-                                labels: dates,
-                                datasets: [{
-                                    label: "Values",
-                                    backgroundColor: "rgba(0,0,0,1)",
-                                    borderColor: "rgba(255, 120, 0, 1)",
-                                    data: values
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                spanGaps: true,
-                                elements: {
-                                    point: {
-                                        radius: 0
-                                    }
-                                }
-                            }
-
-                        });
-                    })
-                    .catch((err) => {
-                        console.log(err)
-                    })
-            }
-        </script>
-        </canvas>
+        <div id="value" style="text-align: center;font-weight: bolder;"></div>
     </section>
+
 </body>
 
 </html>
