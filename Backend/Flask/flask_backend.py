@@ -1,15 +1,14 @@
 from datetime import datetime, timedelta
-from queue import Empty
 from statistics import mean
 from turtle import title
-from flask import Flask, jsonify, session, redirect, request
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 import json
-from sqlalchemy import null
 from flask_cors import CORS
+import urllib.parse
 
 # DATABASE INFO
-dbInf = open('Backend/databaseInfo.json')
+dbInf = open('jsonFiles/databaseInfo.json')
 db_info = json.load(dbInf)
 hostname = db_info['hostname']
 database = db_info['databaseName']
@@ -26,10 +25,6 @@ db = SQLAlchemy(app)
 asset = db.Table('assets_info', db.metadata, autoload=True, autoload_with=db.engine)
 data = db.Table('datapoints_info', db.metadata, autoload=True, autoload_with=db.engine)
 
-@app.route('/home')
-def index():
-    return {'home':'home'}
-
 # FUNCTIE DE AFISARE A TUTUTOR ASSETurilor DIN DB
 @app.route('/assets', methods=['GET'])
 def assets():
@@ -41,39 +36,67 @@ def assets():
     return jsonify(output)
 
 
+def interpolation(res,rate):
+    values = []
+    valuesWithTime = []
+    interpolation_rate = len(res)/rate
+    values_for_interpolation = []
+    i = 0
+    for value in res:
+        i +=1            
+        values.append(value.value)
+        if i > interpolation_rate:
+                valuesWithTime.append([i,mean(values_for_interpolation)])
+                i = 0
+                values_for_interpolation = []
+        else:
+                values_for_interpolation.append(value.value)
+    return valuesWithTime
+
+def date_separator(date_range):
+    list  = date_range.split()
+    startDate = datetime.strptime(list[0], '%m/%d/%Y')
+    endDate = datetime.strptime(list[2], '%m/%d/%Y')
+    return startDate,endDate
+
+def getValues(asset_id,choice,start,end,interpolation_rate):
+    results = db.session.query(data).filter_by(asset_id=asset_id).all()
+    values = []
+    try:
+        if not isinstance(start,datetime) and not isinstance(end,datetime):
+            raise ValueError("Not datetime")
+    except(ValueError,IndexError):
+        return {"value":ValueError}
+    if choice in ['average','maximum','minimum','all']:
+        for value in results:
+            if datetime.strptime(str(value.timestamp), '%Y-%m-%d %H:%M:%S') > start and datetime.strptime(str(value.timestamp), '%Y-%m-%d %H:%M:%S') < end:
+                values.append(value.value)
+        if values:
+            match choice:
+                case "average":
+                    return mean(values)
+                case "maximum":
+                    return max(values)
+                case "minimum":
+                    return min(values)
+                case "all":
+                    return interpolation(results,interpolation_rate)
+        else:
+            return f"no data starting from {start} to {end}"
+    else:
+        return "wrong choice"
+
 #FUNCTIE CARE RETURNEAZA DATAPOINTurile UNUI ASSET IN FUNCTIE DE ID
 @app.route('/datapoints', methods=['GET'])
 def datapoints():
     asset_id = request.args.get('id')
-    results = db.session.query(data).filter_by(asset_id=asset_id).all()
-    values = []
-    valuesWithTime = []
-    range = request.args.get('range')
     choice = request.args.get('choice')
-    try:
-        range = int(range)
-    except:
-        return {"wrong range":"wrong range"}
-    if choice in ['average','maximum','minimum','all']:
-        start = datetime.now() - timedelta(days = range)
-        for asst in results:
-            if (datetime.strptime(str(asst.timestamp), '%Y-%m-%d %H:%M:%S') > start):
-                values.append(asst.value)
-                valuesWithTime.append([asst.timestamp,asst.value])
-        if values:
-            match choice:
-                case "average":
-                    return {"value": mean(values)}
-                case "maximum":
-                    return {"value": max(values)}
-                case "minimum":
-                    return {"value": min(values)}
-                case "all":
-                    return {"value": valuesWithTime}
-        else:
-            return {f"value":f"no data starting from {start}"}
-    else:
-        return {"value":"wrong choice"}
+    interpolation_rate = int(request.args.get('int_rate'))
+    dateRange = urllib.parse.unquote(request.args.get('range'))
+    date_list = date_separator(dateRange)
+    values = getValues(asset_id,choice,date_list[0],date_list[1],interpolation_rate)
+    return {"value":values}
+    
 
 if __name__ == '__main__':
     CORS(app)

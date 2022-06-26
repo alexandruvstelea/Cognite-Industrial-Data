@@ -6,10 +6,10 @@ import schedule
 import json
 
 # VARIABILA DE TIMP PENTRU REFRESHul DB
-refresh_time = 40 # days
+refresh_time = 100 # days
 
 # DATABASE INFO
-dbInf = open('DataIngestion/databaseInfo.json')
+dbInf = open('jsonFiles/databaseInfo.json')
 db_info = json.load(dbInf)
 hostname = db_info['hostname']
 database = db_info['databaseName']
@@ -19,7 +19,7 @@ port_id = db_info['portID']
 dbInf.close()
 
 # AUTENTIFICARE COGNITE
-cognInf = open('DataIngestion/cogniteClientInfo.json')
+cognInf = open('jsonFiles/cogniteClientInfo.json')
 client_info = json.load(cognInf)
 api_key = client_info['APIKey']
 client_name = client_info['clientName']
@@ -135,16 +135,16 @@ def get_datapoints_list_format(datapoints_id, asset_id):
     datapoints = c.datapoints.retrieve(id=datapoints_id, start=datetime.now(
     )-timedelta(days=refresh_time), end=datetime.now())
     data_list = []
-    i = 0
+    #i = 0
     for data in datapoints:
-        i += 1
+        #i += 1
         data_to_dump = []
         data_to_dump.append(time.strftime('%Y/%m/%d %H:%M:%S', time.gmtime(data.timestamp/1000)))
         data_to_dump.append(data.value)
         data_to_dump.append(asset_id)
         data_list.append(data_to_dump)
-        if i == 5:
-            break
+        #if i == 5:
+            #break
     print("GOT NEW DATA LIST")
     return data_list
 
@@ -176,7 +176,7 @@ def transfer_datapoints_to_db(assets_data):
 # FUNCTIE PRINCIPALA - APELEAZA FUNCTIILE NECESARE PENTRU UPDATE-ul DB-ului
 def add_new_datapoints_to_db():
     print("\nStarted script")
-    astInf = open('DataIngestion/assets.json')
+    astInf = open('jsonFiles/assets.json')
     assets_list = json.load(astInf)
     refresh_assets_info(assets_list)
     active_assets_id = get_assets_id_in_db("only_used_assets")

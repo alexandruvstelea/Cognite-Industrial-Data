@@ -6,23 +6,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cognite Industrial Data</title>
-    <link rel="stylesheet" href="/public/styles/assets.css">
+    <link rel="stylesheet" href="../../public/styles/assets.css">
 </head>
 
 <body onload="loadAssets()">
+
     <div class="navigation_bar">
         <div class="container">
-            <a class="logo" href="/FrontEnd/templates/home.html">Cognite Industrial<span> Data</span></a>
+            <a class="logo" href="../../FrontEnd/templates/home.html">Cognite Industrial<span> Data</span></a>
             <nav>
                 <ul class="main_navigation_bar">
                     <li class="current_page">
-                        <a href="/FrontEnd/templates/home.html">Home</a>
+                        <a href="../../FrontEnd/templates/home.html">Home</a>
                     </li>
-                    <li><a href="/FrontEnd/templates/assets.html">Assets</a></li>
+                    <li><a href="../../FrontEnd/templates/assets.html">Assets</a></li>
                 </ul>
             </nav>
         </div>
     </div>
+
     <a href=""></a>
     <section class="assets">
         <script>
@@ -38,8 +40,7 @@
                             data += `
                             <div class="card">
                                 <img src="/public/images/asset.svg" alt="Avatar" style="width:100%">
-                                <div class="container">
-                                <h4><b>${values.name}</b></h4>
+                                <b>${values.name}</b>
                                 <p><a href=/FrontEnd/templates/data.html?${values.id}>${values.id}</a></p>
                                 <p>${values.used}</p>
                             </div>
@@ -53,11 +54,7 @@
             }
         </script>
         <div class="container">
-            <ul>
-                <li>
-                    <div id="cards"></div>
-                </li>
-            </ul>
+            <div class="grid-container" id="cards"></div>
         </div>
     </section>
 

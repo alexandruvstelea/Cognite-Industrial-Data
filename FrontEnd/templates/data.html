@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html>
 
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cognite Industrial Data</title>
     <link rel="stylesheet" href="/public/styles/data.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
 </head>
 
 <body onload="getGraphData()">
@@ -37,12 +43,25 @@
             }
         </script>
         <form>
-            <input type="range" id="slider" name="rangeInput" min="0" max="100" onchange="updateDays(this.value);">
+            <input type="range" id="slider" name="rangeInput" min="0" max="1000" step="100" onchange="updateDays(this.value);getGraphData()">
             <output type="text" id="days" value=""></output>
             <script>
                 function updateDays(val) {
                     document.getElementById('days').value = val + ' days';
                 }
+            </script>
+        </form>
+        <form>
+            <br>
+            <input type="text" name="calendar" size="22" id="date_range" onchange="getGraphData()">
+            <script>
+                $(function() {
+                    $('input[name="calendar"]').daterangepicker({
+                        opens: 'left'
+                    }, function(start, end, label) {
+
+                    });
+                });
             </script>
         </form>
         <form class="choice-group">
@@ -54,20 +73,26 @@
                     let queryString = decodeURIComponent(window.location.search);
                     queryString = queryString.substring(1);
                     let id = queryString.split("&");
-                    let slider_range = document.getElementById('slider').value
+                    let calendar_range = document.getElementById('date_range').value
+                    let interpolation_rate = document.getElementById('slider').value
                     let radio_choice = document.querySelector('input[name="choice"]:checked').value
                     fetch('http://127.0.0.1:5000/datapoints?' + new URLSearchParams({
                             id: id[0],
                             choice: radio_choice,
-                            range: slider_range
+                            range: calendar_range,
+                            int_rate: interpolation_rate
                         }))
-                        .then(function(response) {
-                            return response.json()
-                        })
-                        .then(function(complete_response) {
-                            console.log(complete_response)
-                            document.getElementById('value').innerHTML = complete_response.value
-                        })
+                        .then(
+                            function(response) {
+                                return response.json()
+                            }
+                        )
+                        .then(
+                            function(complete_response) {
+                                console.log(complete_response)
+                                document.getElementById('value').innerHTML = complete_response.value
+                            }
+                        )
                         .catch((err) => {
                             console.log(err)
                         })
@@ -76,30 +101,61 @@
         </form>
         <div id="value"></div>
 
+        <br><br>
+        <div style="height: 75%; width: 75%;">
+            <canvas id="graph"></canvas>
+        </div>
         <script>
             function getGraphData() {
                 let id = queryString.split("&");
+                let calendar_range = document.getElementById('date_range').value
+                let interpolation_rate = document.getElementById('slider').value
                 fetch('http://127.0.0.1:5000/datapoints?' + new URLSearchParams({
                         id: id[0],
                         choice: "all",
-                        range: 999
+                        range: calendar_range,
+                        int_rate: interpolation_rate
                     }))
                     .then(function(response) {
                         return response.json()
                     })
                     .then(function(complete_response) {
-                        console.log(complete_response)
-                        document.getElementById('graph').innerHTML = complete_response.value
+                        let dates = []
+                        let values = []
+                        for (i in complete_response.value) {
+                            dates.push(complete_response.value[i][0])
+                            values.push(complete_response.value[i][1])
+                        }
+                        let graph = document.getElementById("graph").getContext('2d')
+                        let chart = new Chart(graph, {
+                            type: "line",
+                            data: {
+                                labels: dates,
+                                datasets: [{
+                                    label: "Values",
+                                    backgroundColor: "rgba(0,0,0,1)",
+                                    borderColor: "rgba(255, 120, 0, 1)",
+                                    data: values
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                spanGaps: true,
+                                elements: {
+                                    point: {
+                                        radius: 0
+                                    }
+                                }
+                            }
+
+                        });
                     })
                     .catch((err) => {
                         console.log(err)
                     })
             }
         </script>
-        <br><br>
-        <div id="graph">
-
-        </div>
+        </canvas>
     </section>
 </body>
 

@@ -162,3 +162,9 @@
             flex-wrap: wrap;
             flex-basis: 25%
         }
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: 33% 33% 33%;
+            padding-left: 4%;
+        }
