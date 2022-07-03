@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 from flask_cors import CORS
 import urllib.parse
+import numpy as np
 
 
 # DATABASE INFO
@@ -27,7 +28,7 @@ db = SQLAlchemy(app)
 asset = db.Table('assets_info', db.metadata, autoload=True, autoload_with=db.engine)
 data = db.Table('datapoints_info', db.metadata, autoload=True, autoload_with=db.engine)
 
-# FUNCTIE DE AFISARE A TUTUTOR ASSETurilor DIN DB
+#ENDPOINT PENTRU TRANSMITEREA ASSETurilor DIN DB IN FORMAT JSON
 @app.route('/assets', methods=['GET'])
 def assets():
     results = db.session.query(asset).all()
@@ -37,9 +38,28 @@ def assets():
         output.append(asset_info)
     return jsonify(output)
 
+#FUNCTIE DE DETECTARE A OUTLIERelor
+def getValuesWithOutliers(data):
+    data_outliers = data
+    values = []
+    for list in data:
+        values.append(list[1])
+    mean = np.mean(values)
+    threshold = 1
+    standard_deviation =np.std(values)
+    i=0
+    for value in values:
+        z_score= (value - mean)/standard_deviation 
+        if np.abs(z_score) > threshold:
+            data_outliers[i].append(1)
+        else:
+            data_outliers[i].append(0)
+        i+=1
+    return data_outliers
 
-def interpolation(data,rate):
-    valuesWithTime = []
+#FUNCTIE DE INTERPOLARE A DATELOR LA O ANUMITA RATA SPECIFICATA
+def interpolation(data,rate,outlier_detection):
+    values_with_time = []
     interpolation_rate = len(data)/rate
     if interpolation_rate < 1:
         interpolation_rate = 1
@@ -48,23 +68,29 @@ def interpolation(data,rate):
     for value in data:
         i +=1            
         if i > interpolation_rate:
-                valuesWithTime.append([value[1],mean(values_for_interpolation)])
+                values_with_time.append([value[1],mean(values_for_interpolation)])
                 i = 0
                 values_for_interpolation = []
         else:
                 values_for_interpolation.append(value[0])
-    return sorted(valuesWithTime,key=itemgetter(0))
+    if outlier_detection == 'NO':
+        return sorted(values_with_time,key=itemgetter(0))
+    else: 
+        if outlier_detection == 'YES':
+            return getValuesWithOutliers(sorted(values_with_time,key=itemgetter(0)))
 
+#FUNCTIE DE EXTRAGERE A DATELOR CALENDARISTICE DIN PARAMETRUL PRIMIT DE ENDPOINT
 def date_separator(date_range):
     list  = date_range.split()
-    startDate = datetime.strptime(list[0], '%m/%d/%Y')
-    endDate = datetime.strptime(list[2], '%m/%d/%Y')
-    return startDate,endDate
+    start_date = datetime.strptime(list[0], '%m/%d/%Y')
+    end_date = datetime.strptime(list[2], '%m/%d/%Y')
+    return start_date,end_date
 
-def getValues(asset_id,choice,start,end,interpolation_rate):
+#FUNCTIE CARE RETURNEAZA DATAPOINTurile SAU MEDIA/MAXIMUL/MINIMUL UNUI ASSET IN FUNCTIE DE ID PE O ANUMITA PERIOADA SELECTATA
+def getValues(asset_id,choice,start,end,interpolation_rate,outlier_detection):
     results = db.session.query(data).filter_by(asset_id=asset_id).all()
     values = []
-    valuesWithTime = []
+    values_with_time = []
     try:
         if not isinstance(start,datetime) and not isinstance(end,datetime):
             raise ValueError("Not datetime")
@@ -74,7 +100,7 @@ def getValues(asset_id,choice,start,end,interpolation_rate):
         for value in results:
             if datetime.strptime(str(value.timestamp), '%Y-%m-%d %H:%M:%S') > start and datetime.strptime(str(value.timestamp), '%Y-%m-%d %H:%M:%S') < end:
                 values.append(value.value)
-                valuesWithTime.append([value.value,value.timestamp])
+                values_with_time.append([value.value,value.timestamp.date()])
         if values:
             match choice:
                 case "average":
@@ -84,21 +110,23 @@ def getValues(asset_id,choice,start,end,interpolation_rate):
                 case "minimum":
                     return min(values)
                 case "all":
-                    return interpolation(valuesWithTime,interpolation_rate)
+                    return interpolation(values_with_time,interpolation_rate,outlier_detection)
+
         else:
-            return f"no data starting from {start} to {end}"
+            return f"NoData"
     else:
         return "wrong choice"
 
-#FUNCTIE CARE RETURNEAZA DATAPOINTurile UNUI ASSET IN FUNCTIE DE ID
+#ENDPOINT PENTRU DATAPOINTuri sau OPERATII PE DATAPOINTurile UNUI ASSET
 @app.route('/datapoints', methods=['GET'])
 def datapoints():
     asset_id = request.args.get('id')
     choice = request.args.get('choice')
     interpolation_rate = int(request.args.get('int_rate'))
-    dateRange = urllib.parse.unquote(request.args.get('range'))
-    date_list = date_separator(dateRange)
-    values = getValues(asset_id,choice,date_list[0],date_list[1],interpolation_rate)
+    date_range = urllib.parse.unquote(request.args.get('range'))
+    outlier_detection = request.args.get('outliers')
+    date_list = date_separator(date_range)
+    values = getValues(asset_id,choice,date_list[0],date_list[1],interpolation_rate,outlier_detection)
     return {"value":values}
     
 
