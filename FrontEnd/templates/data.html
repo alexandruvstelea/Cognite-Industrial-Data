@@ -68,9 +68,8 @@
             </form>
         </div>
         <script>
-            var outlier_color = "rgb(255, 52, 1)"
-            var anomaly_index = []
-            const outliers = (ctx, value) => anomaly_index.includes(ctx.p0DataIndex + 1) || anomaly_index.includes(ctx.p0DataIndex) ? value : undefined
+            let pointBackgroundColor = []
+            let pointBorderColor = []
             let graph = document.getElementById("graph").getContext('2d')
             let chart = new Chart(graph, {
                 type: "line",
@@ -80,9 +79,8 @@
                         label: "Values",
                         backgroundColor: "rgba(0,0,0,1)",
                         borderColor: "rgb(255, 52, 1)",
-                        segment: {
-                            borderColor: ctx => outliers(ctx, outlier_color)
-                        },
+                        pointBackgroundColor: pointBackgroundColor,
+                        pointBorderColor: pointBorderColor,
                         data: 'Values'
                     }]
                 },
@@ -111,10 +109,10 @@
             function updateColors() {
                 let flip = document.querySelector('#fs')
                 if (flip.checked == true) {
-                    outlier_color = "rgb(0, 0, 1)"
+                    chart.options.elements.point.radius = 3
                     chart.update()
-                } else if (flip.checked == false) {
-                    outlier_color = "rgb(255, 52, 1)"
+                } else {
+                    chart.options.elements.point.radius = 0
                     chart.update()
                 }
             }
@@ -123,13 +121,16 @@
                 console.log("GETTING OUTLIER INDEXES")
                 for (i = 0; i < data.length; i++) {
                     if (data[i][2] == 1) {
-                        anomaly_index.push(i)
+                        pointBackgroundColor.push('black');
+                        pointBorderColor.push('black');
+                    } else {
+                        pointBackgroundColor.push('transparent');
+                        pointBorderColor.push('transparent');
                     }
                 }
             }
 
             async function updateChart(new_data) {
-                anomaly_index = []
                 console.log("UPDATING CHART")
                 let dates = []
                 let values = []
