@@ -1,0 +1,3 @@
+schedule
+psycopg2
+cognite-sdk

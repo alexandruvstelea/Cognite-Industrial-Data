@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  backend:
+    image: "backend:1.0"
+    ports:
+      - "5000:5000"
+
+  dataingestion:
+    image: "dataingestion:1.0"
+    networks:
+      - ingestion
+    depends_on:
+      - postgres
+      
+  postgres:
+    image: "postgres:14-alpine"
+    volumes:
+      - volum:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: Cognite_Industrial_Data
+    networks:
+      - ingestion
+
+volumes:
+  volum:
+
+networks:
+  ingestion: 

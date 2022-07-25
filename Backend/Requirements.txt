@@ -1,0 +1,9 @@
+statistics
+PythonTurtle
+flask
+flask_sqlalchemy
+flask-cors
+flask-dance
+requests
+numpy
+psycopg2
