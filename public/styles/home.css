@@ -170,6 +170,9 @@ nav li a:hover {
     .section_creators {
         background: var(--primary_color);
         font-weight: bold;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
     }
     .section_creators ul {
         display: -webkit-box;
