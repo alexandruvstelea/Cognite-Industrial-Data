@@ -7,3 +7,6 @@ flask-dance
 requests
 numpy
 psycopg2
+oauthlib
+blinker
+werkzeug

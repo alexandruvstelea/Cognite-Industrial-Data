@@ -6,8 +6,6 @@ COPY DataIngestion/Requirements.txt .
 
 RUN pip install --no-cache-dir -r Requirements.txt
 
-
-
 COPY DataIngestion/dataIngestion.py .
 COPY jsonFiles ./jsonFiles
 

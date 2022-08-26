@@ -6,20 +6,20 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cognite Industrial Data</title>
-    <link rel="stylesheet" href="../../public/styles/assets.css">
+    <link rel="stylesheet" href="../../FrontEnd/CSS/assets.css">
 </head>
 
 <body onload="loadAssets()">
 
     <div class="navigation_bar">
         <div class="container">
-            <a class="logo" href="../../FrontEnd/templates/home.html">Cognite Industrial<span> Data</span></a>
+            <a class="logo" href="../../FrontEnd/HTML/index.html">Cognite Industrial<span> Data</span></a>
             <nav>
                 <ul class="main_navigation_bar">
                     <li class="current_page">
-                        <a href="../../FrontEnd/templates/home.html">Home</a>
+                        <a href="../../FrontEnd/HTML/index.html">Home</a>
                     </li>
-                    <li><a href="../../FrontEnd/templates/assets.html">Assets</a></li>
+                    <li><a href="../../FrontEnd/HTML/assets.html">Assets</a></li>
                 </ul>
             </nav>
         </div>
@@ -39,9 +39,9 @@
                             console.log(values)
                             data += `
                             <div class="card">
-                                <img src="/public/images/asset.svg" alt="Avatar" style="width:100%">
+                                <img src="/FrontEnd/Images/asset.svg" alt="Avatar" style="width:100%">
                                 <b>${values.name}</b>
-                                <p><a href=/FrontEnd/templates/data.html?${values.id}&${values.name}>${values.id}</a></p>
+                                <p><a href=/FrontEnd/HTML/data.html?${values.id}&${values.name}>${values.id}</a></p>
                                 <p>Tracking data: ${values.used}</p>
                             </div>
                             `

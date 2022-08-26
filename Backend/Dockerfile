@@ -1,10 +1,11 @@
-FROM python:3.10
+FROM python:3.10.4
 
 WORKDIR /Backend
 
 COPY Backend/Requirements.txt .
 
 RUN pip install --no-cache-dir -r Requirements.txt
+RUN apt update && apt install -y telnet curl tcpdump
 
 
 EXPOSE 5000

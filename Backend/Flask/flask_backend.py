@@ -8,6 +8,13 @@ import json
 from flask_cors import CORS
 import urllib.parse
 import numpy as np
+from flask import Flask, jsonify, redirect, url_for, session, request
+from flask_dance.consumer import OAuth2ConsumerBlueprint, oauth_authorized
+from functools import wraps
+from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
+from werkzeug.middleware.proxy_fix import ProxyFix
+import os 
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 
 # DATABASE INFO
@@ -28,8 +35,56 @@ db = SQLAlchemy(app)
 asset = db.Table('assets_info', db.metadata, autoload=True, autoload_with=db.engine)
 data = db.Table('datapoints_info', db.metadata, autoload=True, autoload_with=db.engine)
 
+
+# KEYCLOAK
+#--------------------------------------------------
+#cInf = open('jsonFiles/Keycloak.json')
+#cInfo = json.load(cInf)
+#client_id = cInfo['client_id']
+#client_secret= cInfo['client_secret']
+#base_url=cInfo['base_url']
+#token_url=cInfo['token_url']
+#authorization_url= cInfo['authorization_url']
+#secret = cInfo['secret_key']
+#
+#example_blueprint = OAuth2ConsumerBlueprint(
+#    "oauth-example", __name__,
+#    client_id=client_id,
+#    client_secret=client_secret,
+#    base_url=base_url,
+#    token_url=token_url,
+#    authorization_url=authorization_url
+#)
+#
+#app.wsgi_app = ProxyFix(app.wsgi_app)
+#app.secret_key = secret
+#app.register_blueprint(example_blueprint, url_prefix="/login")
+#
+#def auth_required(func):
+#    @wraps(func)
+#    def check_authorization(*args, **kwargs):  
+#        token = example_blueprint.session.token        
+#        if not example_blueprint.session.authorized or token["expires_in"] < 0:      
+#            session["next_url"] = request.full_path            
+#            return redirect(url_for("oauth-example.login"))
+#        return func(*args, **kwargs)
+#    return check_authorization
+#
+#@oauth_authorized.connect
+#def redirect_to_next_url(blueprint, token):
+#    blueprint.token = token    
+#    next_url = session["next_url"]
+#    return redirect(next_url)
+#
+#@app.errorhandler(TokenExpiredError)
+#def token_expired(_):  
+#    del app.blueprints["oauth-example"].token
+#    redirect(url_for('oauth-example.login'))
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 #ENDPOINT PENTRU TRANSMITEREA ASSETurilor DIN DB IN FORMAT JSON
 @app.route('/assets', methods=['GET'])
+#@auth_required
 def assets():
     results = db.session.query(asset).all()
     output = []
@@ -132,4 +187,4 @@ def datapoints():
 
 if __name__ == '__main__':
     CORS(app)
-    app.run(debug=True)
+    app.run(host = "0.0.0.0", debug=True)
