@@ -9,6 +9,10 @@ body {
     font-family: 'Poppins';
 }
 
+.home-button{
+    text-decoration: underline;
+}
+
 .navigation_bar {
     background: white;
     padding: 1em;

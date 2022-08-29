@@ -11,49 +11,12 @@
 
 <body onload="loadAssets()">
 
-    <div class="navigation_bar">
-        <div class="container">
-            <a class="logo" href="../../FrontEnd/HTML/index.html">Cognite Industrial<span> Data</span></a>
-            <nav>
-                <ul class="main_navigation_bar">
-                    <li class="current_page">
-                        <a href="../../FrontEnd/HTML/index.html">Home</a>
-                    </li>
-                    <li><a href="../../FrontEnd/HTML/assets.html">Assets</a></li>
-                </ul>
-            </nav>
-        </div>
-    </div>
+    <script src="/FrontEnd/JavaScript/nav_bar.js"></script>
+    <script src="/FrontEnd/JavaScript/assets.js"></script>
 
     <a href=""></a>
     <section class="assets">
-        <script>
-            function loadAssets() {
-                fetch('http://127.0.0.1:5000/assets')
-                    .then(function(response) {
-                        return response.json()
-                    })
-                    .then(function(complete_response) {
-                        let data = ''
-                        complete_response.map((values) => {
-                            console.log(values)
-                            data += `
-                            <div class="card">
-                                <img src="/FrontEnd/Images/asset.svg" alt="Avatar" style="width:100%">
-                                <b>${values.name}</b>
-                                <p><a href=/FrontEnd/HTML/data.html?${values.id}&${values.name}>${values.id}</a></p>
-                                <p>Tracking data: ${values.used}</p>
-                            </div>
-                            `
-                            document.getElementById('cards').innerHTML = data
-                        })
-                    })
-                    .catch((err) => {
-                        console.log(err)
-                    })
-            }
-        </script>
-        <div class="container">
+        <div class="card-container">
             <div class="grid-container" id="cards"></div>
         </div>
     </section>

@@ -28,7 +28,7 @@ port_id = db_info['portID']
 dbInf.close()
 
 # CREAREA APLICATIEI FLASK SI SETUPul DBului
-app = Flask(__name__, template_folder='../FrontEnd/templates',static_folder='../static')
+app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{username}:{pwd}@{hostname}:{port_id}/{database}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -84,7 +84,6 @@ data = db.Table('datapoints_info', db.metadata, autoload=True, autoload_with=db.
 
 #ENDPOINT PENTRU TRANSMITEREA ASSETurilor DIN DB IN FORMAT JSON
 @app.route('/assets', methods=['GET'])
-#@auth_required
 def assets():
     results = db.session.query(asset).all()
     output = []
@@ -187,4 +186,4 @@ def datapoints():
 
 if __name__ == '__main__':
     CORS(app)
-    app.run(host = "0.0.0.0", debug=True)
+    app.run(debug=True)
