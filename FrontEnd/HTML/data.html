@@ -12,6 +12,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cognite Industrial Data</title>
     <link rel="stylesheet" href="/FrontEnd/CSS/data.css">
+    <link rel="stylesheet" href="/FrontEnd/CSS/nav_bar.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
 </head>
 
@@ -47,7 +48,7 @@
                 Select the start and end date for collecting data
                 <input type="text" name="calendar" size="22" id="date_range" , onchange="getGraphData();getData()">
                 <script>
-                    $(function () {
+                    $(function() {
                         $('input[name="calendar"]').daterangepicker({
                             opens: 'center'
                         });
@@ -61,8 +62,7 @@
                 <p>Interpolation rate: <output type="text" id="points" value=""></output></p>
             </div>
             <div style="text-align: center;">
-                <input type="range" id="slider" name="rangeInput" min="100" max="1000" step="100"
-                    onchange="updateInterpolation(this.value)">
+                <input type="range" id="slider" name="rangeInput" min="100" max="1000" step="100" onchange="updateInterpolation(this.value)">
             </div>
         </form>
         <form class="choice-group">
